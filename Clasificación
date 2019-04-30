@@ -1,0 +1,75 @@
+
+# coding: utf-8
+
+# In[ ]:
+
+
+#%% Importar librerías
+import scipy.optimize as opt
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+#%% Elegir el lugar de almacenamiento
+data_file = 'C:\\Users\\Adriana\\Documents\\ex2data1.txt'
+data = pd.read_csv(data_file, header=None)
+#%%
+X = data.iloc[:,0:2].values   #Todos en 2 columnas
+Y = data.iloc[:,2].values     #Todos en arreglo
+X
+Y
+#%% Definir las funciones
+def fun_log(z):      #Sigmoide (función logística)
+    return 1/(1+np.exp(-z))
+
+def reg_log(B, X):   #Definición regresor logísitico
+    Xa = np.append(np.ones((X.shape[0],1)), X, axis=1)
+    return fun_log(Xa.dot(B))
+
+def fun_obj(B, X, Y):  #Función de optimización cambiada a modo convexo
+    Yhat = 0.99999*reg_log(B, X)
+    return np.mean(-Y*np.log(Yhat)-(1-Y)*np.log(1-Yhat))
+#%% Regresar ceros
+B0 = np.zeros((3,))
+B0
+#%% minimizar las funciones
+res_clas = opt.minimize(fun_obj, B0, args=(X,Y))
+res_clas
+#%%
+B = res_clas.x
+B
+#%% tomar datos de .5 en .5 en ese rango en x
+x = np.arange(20, 110, 0.5)
+x
+#%% tomar datos de .5 en .5 en ese rango en y
+y = np.arange(20, 110, 0.5)
+## igual que x
+#%%
+Xm, Ym = np.meshgrid(x, y)
+Xm
+#%% Darle forma a los datos
+m,n = np.shape(Xm)
+m
+#%% Organizar de cierta forma los datos en X
+Xmr = np.reshape(Xm,(m*n,1))
+Xmr
+#%% Organizar de cierta forma los datos en Y
+Ymr = np.reshape(Ym,(m*n,1))
+Ymr   #Igual que con x
+#%% Darle la forma adecuada a los datos
+Xproof = np.append(Xmr,Ymr,axis=1)
+Xproof
+#%%
+Yg = reg_log(B, Xproof)
+Yg
+#%% Organizar de cierta forma los datos
+Z = np.reshape(Yg, (m,n))
+Z
+#%% redondear decimales
+Z = np.round(Z)
+Z
+#%% Graficar
+plt.figure(figsize=(6,4))
+plt.contour(Xm, Ym, Z)
+plt.scatter(X[:, 0],X[:, 1], c=Y, edgecolors='w')
+plt.show()
+
